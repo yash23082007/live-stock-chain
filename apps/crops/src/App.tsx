@@ -17,7 +17,7 @@ export default function App() {
         <Route path="/auth" element={<AuthPage />} />
         <Route 
           path="/*" 
-          element(
+          element={
             <DashboardLayout>
               <Routes>
                 <Route path="/" element={<NexusHub />} />
@@ -31,7 +31,7 @@ export default function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </DashboardLayout>
-          )
+          }
         />
       </Routes>
     </BrowserRouter>
