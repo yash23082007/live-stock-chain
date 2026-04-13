@@ -1,128 +1,174 @@
 import React from 'react';
-import { Sprout, Bird, Droplets, ArrowRight, Zap, Shield, Globe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
+import { 
+  Sprout, 
+  Droplets, 
+  ArrowRight, 
+  Zap, 
+  ShieldCheck, 
+  Globe2, 
+  Cattle,
+  LineChart,
+  History,
+  Languages
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export function LandingPage() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
   const sectors = [
     {
       id: 'crops',
-      title: 'Agro-Credit Nexus',
-      subtitle: 'Crop Finance & Input Tokens',
-      description: 'Tokenized agricultural credit for seeds, fertilizers, and hardware. Real-time repayment tracking and marketplace integration.',
+      title: t('sectors.crops.title'),
+      description: t('sectors.crops.desc'),
       icon: Sprout,
-      color: 'from-emerald-600 to-teal-400',
+      color: 'bg-emerald-50 text-emerald-600',
       action: () => navigate('/onboarding'),
-      status: 'Blockchain: Mainnet Online'
+      stats: '8.4k+ farmers',
+      accent: 'emerald'
     },
     {
       id: 'livestock',
-      title: 'Bio-Trace Protocol',
-      subtitle: 'Livestock NFTs & Traceability',
-      description: 'Immutable health passports and provenance tracking for cattle. ERC-721 tokenization of biological assets with 11-language support.',
-      icon: Bird, // Using Bird as a proxy for 'Life/Livestock' since Cow isn't in standard Lucide sometimes, but actually Lucide has 'Beef' or 'Milk' or 'PawPrint'. Let's use 'Bird' or 'PawPrint'.
-      color: 'from-blue-600 to-cyan-400',
-      action: () => window.location.href = 'http://localhost:3000', // Assuming default livestock port
-      status: 'Network: Polygon Amoy'
+      title: t('sectors.livestock.title'),
+      description: t('sectors.livestock.desc'),
+      icon: Sprout, // Using Sprout as placeholder, will use better cow icon if available
+      color: 'bg-blue-50 text-blue-600',
+      action: () => window.open('http://localhost:3000', '_blank'),
+      stats: '12k+ herds',
+      accent: 'blue'
     },
     {
       id: 'energy',
-      title: 'Petro-Yield Systems',
-      subtitle: 'Energy Asset Fractionalization',
-      description: 'Real-world asset (RWA) tokens for oil production. Automated revenue distribution and fractional equity units for verified holders.',
+      title: t('sectors.energy.title'),
+      description: t('sectors.energy.desc'),
       icon: Droplets,
-      color: 'from-amber-600 to-amber-400',
-      action: () => window.location.href = 'http://localhost:5173', // Assuming default energy port
-      status: 'Audit: Proof-of-Reserve Active'
+      color: 'bg-amber-50 text-amber-600',
+      action: () => window.open('http://localhost:5173', '_blank'),
+      stats: '₹4.2Cr Yield',
+      accent: 'amber'
     }
   ];
 
+  const containerVars = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVars = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 }
+  };
+
   return (
-    <div className="space-y-12 py-10">
-      <section className="text-center space-y-4 max-w-3xl mx-auto">
-        <div className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold tracking-wider uppercase">
-          <Zap size={12} className="mr-2" /> Unified RWA Protocol
-        </div>
-        <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900">
-          The Quantum <span className="text-emerald-600">Nexus</span>
-        </h1>
-        <p className="text-lg text-slate-600 font-medium leading-relaxed">
-          The world's first integrated blockchain platform bridging Agricultural Finance, 
-          Livestock Traceability, and Global Energy Markets.
-        </p>
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={containerVars}
+      className="space-y-16 py-12"
+    >
+      {/* Hero Section */}
+      <section className="text-center space-y-6 max-w-4xl mx-auto px-4">
+        <motion.div 
+          variants={itemVars}
+          className="inline-flex items-center px-4 py-1.5 rounded-full bg-white border border-slate-200 text-slate-500 text-[10px] font-black tracking-[0.2em] uppercase shadow-sm"
+        >
+          <Zap size={14} className="mr-2 text-emerald-600" /> {t('nexus.tagline')}
+        </motion.div>
+        
+        <motion.h1 
+          variants={itemVars}
+          className="text-5xl md:text-7xl font-black tracking-tighter text-slate-900 leading-[0.95]"
+        >
+          {t('nexus.title')} <br/>
+          <span className="text-emerald-600 bg-clip-text">{t('nexus.subtitle')}</span>
+        </motion.h1>
+
+        <motion.p 
+          variants={itemVars}
+          className="text-xl text-slate-500 font-medium leading-relaxed max-w-2xl mx-auto"
+        >
+          {t('nexus.description')}
+        </motion.p>
       </section>
 
+      {/* Main Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {sectors.map((sector) => (
-          <div 
+          <motion.div 
             key={sector.id}
-            className="group relative bg-white rounded-3xl p-8 border border-slate-200/60 shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden"
+            variants={itemVars}
+            whileHover={{ y: -8 }}
+            className="group glass-card rounded-[2.5rem] p-10 hover:shadow-2xl hover:shadow-emerald-500/5 transition-all duration-500 relative overflow-hidden"
           >
-            {/* Background Glow */}
-            <div className={`absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br ${sector.color} opacity-5 blur-3xl group-hover:opacity-20 transition-opacity`} />
-            
-            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${sector.color} flex items-center justify-center text-white mb-8 shadow-lg`}>
-              <sector.icon size={28} />
+            <div className={`w-16 h-16 rounded-2xl ${sector.color} flex items-center justify-center mb-8 shadow-sm`}>
+              <sector.icon size={32} />
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{sector.subtitle}</h3>
-                <h2 className="text-2xl font-bold text-slate-800">{sector.title}</h2>
-              </div>
-              
-              <p className="text-slate-600 text-sm leading-relaxed">
-                {sector.description}
-              </p>
-
-              <div className="pt-6">
-                <button 
-                  onClick={sector.action}
-                  className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10 group-hover:shadow-emerald-500/20`}
-                >
-                  Launch Terminal <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                </button>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">{sector.title}</h3>
+                <p className="text-slate-500 text-sm font-medium mt-2 leading-relaxed">
+                  {sector.description}
+                </p>
               </div>
 
-              <div className="pt-4 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-tighter">
-                  {sector.status}
-                </span>
+              <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <div className="flex items-center gap-1.5">
+                  <LineChart size={14} className="text-emerald-500" /> {sector.stats}
+                </div>
+                <span>•</span>
+                <div className="flex items-center gap-1.5">
+                  <History size={14} /> LIVE
+                </div>
               </div>
+
+              <button 
+                onClick={sector.action}
+                className="w-full flex items-center justify-center gap-3 py-4 rounded-3xl bg-slate-900 text-white font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-colors shadow-xl shadow-slate-900/10 group-hover:scale-[1.02] active:scale-95 duration-300"
+              >
+                {t('nexus.launch')} <ArrowRight size={16} />
+              </button>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      <section className="bg-slate-900 rounded-[2.5rem] p-10 mt-20 relative overflow-hidden text-white border border-slate-800">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-emerald-500/10 to-transparent" />
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="space-y-2 text-center md:text-left">
-            <h3 className="text-2xl font-bold flex items-center justify-center md:justify-start gap-3">
-              <Shield className="text-emerald-400" /> Enterprise Security
-            </h3>
-            <p className="text-slate-400 max-w-md">
-              All transactions are encrypted and anchored on public ledgers with SHA-256 integrity proofs.
-            </p>
+      {/* Trust Banner */}
+      <motion.section 
+        variants={itemVars}
+        className="bg-white border border-slate-200/50 rounded-[3rem] p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-12 premium-shadow"
+      >
+        <div className="space-y-4 text-center md:text-left">
+          <div className="inline-flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.25em]">
+            <ShieldCheck size={18} /> {t('nexus.securityHeader')}
           </div>
-          <div className="flex gap-12 text-center">
-            <div>
-              <div className="text-3xl font-black">99.9%</div>
-              <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mt-1">Uptime</div>
+          <h3 className="text-3xl font-black text-slate-900 leading-tight">
+            {i18n.language === 'hi' ? 'बैंकिंग स्तर की एन्क्रिप्शन' : 'Banking Grade Encryption'}
+          </h3>
+          <p className="text-slate-500 font-medium max-w-sm">
+            {t('nexus.securityDesc')}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-12">
+          <div className="text-center md:text-left">
+            <div className="text-5xl font-black text-slate-900 tracking-tighter italic">99.9<span className="text-emerald-500 font-black">%</span></div>
+            <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-2">{t('nav.onboarding')} STATUS</div>
+          </div>
+          <div className="text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start">
+              <Globe2 size={48} className="text-slate-200" />
             </div>
-            <div>
-              <div className="text-3xl font-black">2.4k+</div>
-              <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mt-1">Live Nodes</div>
-            </div>
-            <div className="hidden sm:block">
-              <div className="text-3xl font-black text-emerald-400"><Globe size={32} /></div>
-              <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mt-1">Global</div>
-            </div>
+            <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-3">GLOBAL ACCESS</div>
           </div>
         </div>
-      </section>
-    </div>
+      </motion.section>
+    </motion.div>
   );
 }
