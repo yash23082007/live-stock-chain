@@ -176,6 +176,6 @@ export function OnboardingPage() {
           </div>
         </form>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
