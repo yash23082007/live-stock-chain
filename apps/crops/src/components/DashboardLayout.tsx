@@ -126,8 +126,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:border-emerald-500 transition-all">
-              English_v1
+            <button 
+              onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'hi' : 'en')}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:border-emerald-500 transition-all"
+            >
+              {i18n.language === 'en' ? 'English_v1' : 'हिंदी_v1'}
             </button>
             <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 hover:bg-emerald-100 cursor-pointer transition-all relative">
               <Bell size={20} />
