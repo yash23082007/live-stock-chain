@@ -1,0 +1,189 @@
+enum LivestockSpecies {
+  CATTLE
+  SHEEP
+  GOAT
+  PIG
+  POULTRY
+}
+
+enum LivestockStatus {
+  ACTIVE
+  SOLD
+  DECEASED
+  TRANSFERRED
+  QUARANTINED
+}
+
+enum HealthEventType {
+  VACCINATION
+  TREATMENT
+  CHECKUP
+  ILLNESS
+  INJURY
+  SURGERY
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model Farm {
+  id               String            @id @default(cuid())
+  name             String
+  farmerId         String
+  location         String?
+  latitude         Float?
+  longitude        Float?
+  onChainFarmId    String?           @unique
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  
+  farmer           Farmer            @relation(fields: [farmerId], references: [id])
+  animals          Animal[]
+  alerts           Alert[]
+  staff            User[]            @relation("FarmStaff")
+
+  @@index([farmerId])
+  @@map("farms")
+}
+
+model Animal {
+  id               String            @id @default(cuid())
+  farmId           String
+  tagNumber        String            @unique
+  nftTokenId       String?           @unique
+  name             String?
+  species          LivestockSpecies
+  breed            String?
+  gender           String?           // male, female, unknown
+  dateOfBirth      DateTime?
+  birthWeightKg    Float?
+  colorMarkings    String?
+  photoUrl         String?
+  ipfsMetadataCid  String?
+  currentOwnerId   String
+  status           LivestockStatus   @default(ACTIVE)
+  sireId           String?
+  damId            String?
+  healthScore      Int               @default(100)
+  lastHealthCheck  DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  farm             Farm              @relation(fields: [farmId], references: [id])
+  currentOwner     User              @relation(fields: [currentOwnerId], references: [id])
+  
+  sire             Animal?           @relation("SireRelation", fields: [sireId], references: [id])
+  dam              Animal?           @relation("DamRelation", fields: [damId], references: [id])
+  siredAnimals     Animal[]          @relation("SireRelation")
+  damedAnimals     Animal[]          @relation("DamRelation")
+
+  healthEvents     HealthEvent[]
+  weightRecords    WeightRecord[]
+  alerts           Alert[]
+  ownershipHistory OwnershipHistory[]
+  
+  breedingSire     BreedingEvent[]   @relation("BreedingSire")
+  breedingDam      BreedingEvent[]   @relation("BreedingDam")
+
+  @@index([farmId])
+  @@index([species, createdAt])
+  @@index([tagNumber])
+  @@map("animals")
+}
+
+model HealthEvent {
+  id                 String            @id @default(cuid())
+  animalId           String
+  eventType          HealthEventType
+  eventDate          DateTime
+  description        String?
+  veterinarianId     String?
+  drugName           String?
+  dosage             String?
+  withdrawalDays     Int?
+  withdrawalEndDate  DateTime?
+  batchNumber        String?
+  dataHash           String?
+  onChainTxHash      String?
+  onChainAnchored    Boolean           @default(false)
+  severity           Severity          @default(LOW)
+  notes              String?
+  createdAt          DateTime          @default(now())
+
+  animal             Animal            @relation(fields: [animalId], references: [id])
+  veterinarian       User?             @relation(fields: [veterinarianId], references: [id])
+
+  @@index([animalId, eventDate])
+  @@index([veterinarianId])
+  @@map("health_events")
+}
+
+model OwnershipHistory {
+  id                 String            @id @default(cuid())
+  animalId           String
+  fromOwnerId        String
+  toOwnerId          String
+  transferDate       DateTime          @default(now())
+  transferType       String?           // sale, gift, inheritance, auction
+  priceAmount        Float?
+  priceCurrency      String            @default("INR")
+  onChainTxHash      String?
+  certificateUrl     String?
+  notes              String?
+
+  animal             Animal            @relation(fields: [animalId], references: [id])
+  @@map("ownership_history")
+}
+
+model WeightRecord {
+  id                 String            @id @default(cuid())
+  animalId           String
+  weightKg           Float
+  recordedAt         DateTime
+  recordedBy         String?
+  notes              String?
+
+  animal             Animal            @relation(fields: [animalId], references: [id])
+
+  @@index([animalId, recordedAt])
+  @@map("weight_records")
+}
+
+model BreedingEvent {
+  id                 String            @id @default(cuid())
+  damId              String
+  sireId             String
+  breedingDate       DateTime?
+  expectedBirthDate  DateTime?
+  actualBirthDate    DateTime?
+  offspringCount     Int?
+  outcome            String?           // successful, failed, pending
+  notes              String?
+
+  dam                Animal            @relation("BreedingDam", fields: [damId], references: [id])
+  sire               Animal            @relation("BreedingSire", fields: [sireId], references: [id])
+
+  @@map("breeding_events")
+}
+
+model Alert {
+  id                 String            @id @default(cuid())
+  farmId             String?
+  animalId           String?
+  alertType          String?           // vaccination_due, outbreak_risk, withdrawal_expiry
+  message            String?
+  severity           Severity          @default(LOW)
+  isRead             Boolean           @default(false)
+  createdAt          DateTime          @default(now())
+
+  farm               Farm?             @relation(fields: [farmId], references: [id])
+  animal             Animal?           @relation(fields: [animalId], references: [id])
+
+  @@index([farmId])
+  @@index([animalId])
+  @@map("alerts")
+}
