@@ -1,29 +1,39 @@
-import React from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { OnboardingPage } from './pages/Onboarding'
 import { MarketplacePage } from './pages/Marketplace'
 import { HarvestReportPage } from './pages/HarvestReport'
-import { LandingPage } from './pages/Landing'
+import { NexusHub } from './pages/NexusHub'
 import { AuthPage } from './pages/Auth'
-import { PremiumLayout } from './components/PremiumLayout'
+import { AboutView } from './pages/About'
+import { AgriNexusView } from './pages/AgriNexus'
+import { BioTraceView } from './pages/BioTrace'
+import { EnergyYieldView } from './pages/EnergyYield'
+import { DashboardLayout } from './components/DashboardLayout'
 import './i18n/config'
 
 export default function App() {
-  // Mock auth state for the "Detailed Functional Features" requirement
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
-
   return (
     <BrowserRouter>
-      <PremiumLayout>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/onboarding" element={<OnboardingPage />} />
-          <Route path="/marketplace" element={<MarketplacePage />} />
-          <Route path="/harvest-report" element={<HarvestReportPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </PremiumLayout>
+      <Routes>
+        <Route path="/auth" element={<AuthPage />} />
+        <Route 
+          path="/*" 
+          element(
+            <DashboardLayout>
+              <Routes>
+                <Route path="/" element={<NexusHub />} />
+                <Route path="/agri" element={<AgriNexusView />} />
+                <Route path="/bio" element={<BioTraceView />} />
+                <Route path="/energy" element={<EnergyYieldView />} />
+                <Route path="/onboarding" element={<OnboardingPage />} />
+                <Route path="/marketplace" element={<MarketplacePage />} />
+                <Route path="/report" element={<HarvestReportPage />} />
+                <Route path="/about" element={<AboutView />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </DashboardLayout>
+          )
+        />
+      </Routes>
     </BrowserRouter>
   )
 }
