@@ -1,19 +1,89 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
-// Premium Internationalization supporting 10 Indian Languages + English
 const resources = {
-  en: { translation: { greeting: "Welcome to Farm Input Finance", marketplace: "Marketplace", onboarding: "Onboarding", report: "Harvest Report" } },
-  hi: { translation: { greeting: "कृषि इनपुट फाइनेंस में आपका स्वागत है", marketplace: "बाज़ार", onboarding: "ऑनबोर्डिंग", report: "फसल रिपोर्ट" } },
-  bn: { translation: { greeting: "ফার্ম ইনপুট ফাইন্যান্সে স্বাগতম", marketplace: "মার্কেটপ্লেস", onboarding: "অনবোর্ডিং", report: "ফসল রিপোর্ট" } },
-  te: { translation: { greeting: "ఫార్మ్ ఇన్‌పుట్ ఫైనాన్స్‌కు స్వాగతం", marketplace: "మార్కెట్‌ప్లేస్", onboarding: "ఆన్‌బోర్డింగ్", report: "పంట నివేదిక" } },
-  mr: { translation: { greeting: "फार्म इनपुट फायनान्समध्ये आपले स्वागत आहे", marketplace: "मार्केटप्लेस", onboarding: "ऑनबोर्डिंग", report: "पीक अहवाल" } },
-  ta: { translation: { greeting: "பண்ணை உள்ளீட்டு நிதிக்கு வரவேற்கிறோம்", marketplace: "சந்தை", onboarding: "உள்நுழைதல்", report: "அறுவடை அறிக்கை" } },
-  gu: { translation: { greeting: "ફાર્મ ઇનપુટ ફાઇનાન્સમાં તમારું સ્વાગત છે", marketplace: "માર્કેટપ્લેસ", onboarding: "ઓનબોર્ડિંગ", report: "લણણી રિપોર્ટ" } },
-  kn: { translation: { greeting: "ಫಾರ್ಮ್ ಇನ್‌ಪುಟ್ ಫೈನಾನ್ಸ್‌ಗೆ ಸುಸ್ವಾಗತ", marketplace: "ಮಾರುಕಟ್ಟೆ", onboarding: "ಆನ್‌ಬೋರ್ಡಿಂಗ್", report: "ಕೊಯ್ಲು ವರದಿ" } },
-  ml: { translation: { greeting: "ഫാം ഇൻപുട്ട് ഫിനാൻസിലേക്ക് സ്വാഗതം", marketplace: "മാർക്കറ്റ്പ്ലേസ്", onboarding: "ഓൺബോർഡിംഗ്", report: "വിളവെടുപ്പ് റിപ്പോർട്ട്" } },
-  or: { translation: { greeting: "ଫାର୍ମ ଇନପୁଟ୍ ଫାଇନାନ୍ସକୁ ସ୍ୱାଗତ", marketplace: "ବଜାର", onboarding: "ଅନବୋର୍ଡିଂ", report: "ଅମଳ ରିପୋର୍ଟ" } },
-  pa: { translation: { greeting: "ਫਾਰਮ ਇਨਪੁਟ ਫਾਈਨਾਂਸ ਵਿੱਚ ਜੀ ਆਇਆਂ ਨੂੰ", marketplace: "ਮਾਰਕੀਟਪਲੇਸ", onboarding: "ਆਨਬੋਰਡਿੰਗ", report: "ਵਾਢੀ ਦੀ ਰਿਪੋਰਟ" } }
+  en: {
+    translation: {
+      nexus: {
+        title: "The Quantum Nexus",
+        subtitle: "Integrated Real-World Assets",
+        description: "The world's first unified command center bridging Crops, Livestock, and Energy assets on the blockchain.",
+        tagline: "System Online • Secure Protocol",
+        launch: "Launch Terminal",
+        securityHeader: "Banking Grade Security",
+        securityDesc: "End-to-end encrypted ledger anchoring for physical assets."
+      },
+      auth: {
+        login: "Welcome Back",
+        signup: "Create Account",
+        phone: "Mobile Number",
+        otp: "Verify OTP",
+        submit: "Proceed to Terminal",
+        switch: "Switch Language"
+      },
+      sectors: {
+        crops: {
+          title: "Argo-Credit",
+          desc: "Input financing and crop-cycle credit tokens."
+        },
+        livestock: {
+          title: "Bio-Trace",
+          desc: "Cattle NFT passports and health provenance."
+        },
+        energy: {
+          title: "Petro-Yield",
+          desc: "Fractional ownership of oil production assets."
+        }
+      },
+      nav: {
+        dashboard: "Overview",
+        marketplace: "Market",
+        onboarding: "Access",
+        logout: "Disconnect"
+      }
+    }
+  },
+  hi: {
+    translation: {
+      nexus: {
+        title: "क्वांटम नेक्सस",
+        subtitle: "एकीकृत वास्तविक-दुनिया संपत्ति",
+        description: "फसल, पशुधन और ऊर्जा क्षेत्र को ब्लॉकचेन पर जोड़ने वाला दुनिया का पहला एकीकृत कमांड सेंटर।",
+        tagline: "सिस्टम ऑनलाइन • सुरक्षित प्रोटोकॉल",
+        launch: "टर्मिनल शुरू करें",
+        securityHeader: "बैंकिंग स्तर की सुरक्षा",
+        securityDesc: "भौतिक संपत्ति के लिए एंड-टू-एंड एन्क्रिप्टेड लेजर एंकरिंग।"
+      },
+      auth: {
+        login: "आपका स्वागत है",
+        signup: "खाता बनाएँ",
+        phone: "मोबाइल नंबर",
+        otp: "ओटीपी सत्यापित करें",
+        submit: "टर्मिनल पर आगे बढ़ें",
+        switch: "भाषा बदलें"
+      },
+      sectors: {
+        crops: {
+          title: "एग्रो-क्रेडिट",
+          desc: "इनपुट फाइनेंसिंग और फसल-चक्र क्रेडिट टोकन।"
+        },
+        livestock: {
+          title: "बायो-ट्रेस",
+          desc: "मवेशी एनएफटी पासपोर्ट और स्वास्थ्य प्रमाण।"
+        },
+        energy: {
+          title: "पेट्रो-यील्ड",
+          desc: "तेल उत्पादन संपत्ति का आंशिक स्वामित्व।"
+        }
+      },
+      nav: {
+        dashboard: "अवलोकन",
+        marketplace: "बाज़ार",
+        onboarding: "एक्सेस",
+        logout: "डिस्कनेक्ट"
+      }
+    }
+  }
 }
 
 i18n.use(initReactI18next).init({
