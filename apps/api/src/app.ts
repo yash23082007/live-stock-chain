@@ -11,13 +11,25 @@ export async function buildApp() {
 
   // ── Plugins ──────────────────────────────────────────
   await app.register(cors, {
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-    credentials: true
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'https://livestock.quantum.ag'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+  })
+
+  await app.register(rateLimit, {
+    max: 100,
+    timeWindow: '1 minute',
+    redis: process.env.REDIS_URL ? undefined : undefined, // Will use default if not provided, or ioredis instance
+    errorResponseBuilder: (request, context) => ({
+      statusCode: 429,
+      error: 'Too Many Requests',
+      message: `Heads up! You've reached the rate limit. Please try again in ${context.after}.`
+    })
   })
 
   await app.register(jwt, {
-    secret: process.env.JWT_SECRET || 'super-secret',
-    sign: { expiresIn: '15m' }
+    secret: process.env.JWT_SECRET || 'super-secret-quantum-key',
+    sign: { expiresIn: '24h' }
   })
 
   await app.register(swagger, {
