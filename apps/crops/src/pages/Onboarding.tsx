@@ -1,119 +1,181 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-
-const steps = ['Personal Info', 'Farm Details', 'KYC Documents', 'Review']
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  User, 
+  MapPin, 
+  FileCheck, 
+  Eye, 
+  ArrowRight, 
+  ChevronLeft,
+  CheckCircle2
+} from 'lucide-react';
 
 const personalInfoSchema = z.object({
   firstName: z.string().min(2),
   lastName: z.string().min(2),
-  phone: z.string().regex(/^(\+254[0-9]{9}|\+91[0-9]{10})$/, 'Valid Kenyan or Indian phone required'),
-  nationalId: z.string().min(7).max(10),
+  phone: z.string().regex(/^\+91[0-9]{10}$/, 'Valid Indian phone (+91) required'),
+  nationalId: z.string().min(12).max(12), // Aadhaar usually
   dateOfBirth: z.string()
-})
+});
 
-const PersonalInfoStep = ({ register, errors }: any) => (
-  <div className="space-y-4">
-    <h2 className="text-xl font-bold">Personal Information</h2>
-    <div>
-      <input {...register('firstName')} placeholder="First Name" className="border p-2 rounded w-full" />
-      {errors.firstName && <span className="text-red-500 text-sm">{errors.firstName.message}</span>}
-    </div>
-    <div>
-      <input {...register('lastName')} placeholder="Last Name" className="border p-2 rounded w-full" />
-      {errors.lastName && <span className="text-red-500 text-sm">{errors.lastName.message}</span>}
-    </div>
-    <div>
-      <input {...register('phone')} placeholder="+918290917517" className="border p-2 rounded w-full border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" />   
-      {errors.phone && <span className="text-red-500 text-sm">{errors.phone.message}</span>}
-    </div>
-    <div>
-      <input {...register('nationalId')} placeholder="National ID" className="border p-2 rounded w-full" />
-      {errors.nationalId && <span className="text-red-500 text-sm">{errors.nationalId.message}</span>}
-    </div>
-    <div>
-      <input type="date" {...register('dateOfBirth')} className="border p-2 rounded w-full" />
-      {errors.dateOfBirth && <span className="text-red-500 text-sm">{errors.dateOfBirth.message}</span>}
-    </div>
-  </div>
-)
-
-const FarmDetailsStep = () => <div>
-  <h2 className="text-xl font-bold">Farm Details</h2>
-  <div className="space-y-4 mt-4">
-    <input placeholder="Farm Size (Hectares)" type="number" className="border p-2 rounded w-full" />
-    <input placeholder="Primary Crop" className="border p-2 rounded w-full" />
-    <input placeholder="Location" className="border p-2 rounded w-full" />
-  </div>
-</div>
-
-const KYCDocumentsStep = () => <div>
-  <h2 className="text-xl font-bold">KYC Documents</h2>
-  <div className="space-y-4 mt-4">
-    <div className="border-2 border-dashed border-gray-300 p-8 text-center rounded-lg">
-      <p className="text-gray-500">Upload ID Document (Front & Back)</p>
-      <button className="mt-2 px-4 py-2 bg-gray-100 rounded">Select File</button>
-    </div>
-    <div className="border-2 border-dashed border-gray-300 p-8 text-center rounded-lg">
-      <p className="text-gray-500">Upload Title Deed / Land Lease</p>
-      <button className="mt-2 px-4 py-2 bg-gray-100 rounded">Select File</button>
-    </div>
-  </div>
-</div>
-const ReviewStep = ({ formData }: any) => <div><h2 className="text-xl font-bold">Review</h2><pre>{JSON.stringify(formData, null, 2)}</pre></div>
+const steps = [
+  { id: 'personal', icon: User },
+  { id: 'farm', icon: MapPin },
+  { id: 'kyc', icon: FileCheck },
+  { id: 'review', icon: Eye }
+];
 
 export function OnboardingPage() {
-  const [step, setStep] = useState(0)
-  const [formData, setFormData] = useState({})
+  const { t, i18n } = useTranslation();
+  const [step, setStep] = useState(0);
+  const [formData, setFormData] = useState({});
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(personalInfoSchema)
-  })
+  });
+
+  const nextStep = (data: any) => {
+    setFormData(prev => ({ ...prev, ...data }));
+    setStep(s => Math.min(steps.length - 1, s + 1));
+  };
+
+  const prevStep = () => setStep(s => Math.max(0, s - 1));
 
   return (
-    <div className="min-h-screen bg-green-50 p-4">
-      {/* Progress Bar */}
-      <div className="flex mb-8">
+    <div className="max-w-4xl mx-auto space-y-12 py-6">
+      {/* Premium Stepper */}
+      <div className="flex justify-between items-center relative px-4">
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-slate-200 -z-10" />
         {steps.map((s, i) => (
-          <div key={s} className="flex-1 flex items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
-              ${i <= step ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
-              {i + 1}
-            </div>
-            <span className="ml-2 text-xs hidden sm:block">{s}</span>
-            {i < steps.length - 1 && (
-              <div className={`flex-1 h-1 mx-2 ${i < step ? 'bg-green-600' : 'bg-gray-200'}`} />
-            )}
+          <div key={s.id} className="flex flex-col items-center gap-3">
+            <motion.div 
+              initial={false}
+              animate={{ 
+                backgroundColor: i <= step ? '#059669' : '#fff',
+                borderColor: i <= step ? '#059669' : '#e2e8f0',
+                color: i <= step ? '#fff' : '#64748b'
+              }}
+              className="w-12 h-12 rounded-2xl border-2 flex items-center justify-center shadow-lg relative bg-white transition-colors duration-500"
+            >
+              <s.icon size={20} />
+              {i < step && (
+                <motion.div 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm"
+                >
+                  <CheckCircle2 size={14} className="text-emerald-600" />
+                </motion.div>
+              )}
+            </motion.div>
+            <span className={`text-[10px] font-black uppercase tracking-widest ${i <= step ? 'text-emerald-700' : 'text-slate-400'}`}>
+              {i18n.language === 'hi' ? ['व्यक्तिगत', 'फ़ार्म', 'केवाईसी', 'समीक्षा'][i] : s.id}
+            </span>
           </div>
         ))}
       </div>
 
-      {/* Step Content */}
-      {step === 0 && <PersonalInfoStep register={register} errors={errors} />}
-      {step === 1 && <FarmDetailsStep />}
-      {step === 2 && <KYCDocumentsStep />}
-      {step === 3 && <ReviewStep formData={formData} />}
+      <motion.div 
+        key={step}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="glass-card rounded-[2.5rem] p-12 premium-shadow"
+      >
+        <form onSubmit={handleSubmit(nextStep)} className="space-y-10">
+          <AnimatePresence mode="wait">
+            {step === 0 && (
+              <motion.div className="space-y-8">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+                    {i18n.language === 'hi' ? 'अपनी पहचान साझा करें' : 'Share Your Identity'}
+                  </h2>
+                  <p className="text-slate-500 font-medium italic">Step 01 / Basic Ledger Setup</p>
+                </div>
 
-      {/* Navigation */}
-      <div className="flex justify-between mt-8">
-        <button
-          onClick={() => setStep(s => Math.max(0, s - 1))}
-          disabled={step === 0}
-          className="px-6 py-2 border border-green-600 text-green-600 rounded-lg disabled:opacity-50"
-        >
-          Back
-        </button>
-        <button
-          onClick={handleSubmit((data) => {
-            setFormData(f => ({ ...f, ...data }))
-            setStep(s => Math.min(steps.length - 1, s + 1))
-          })}
-          className="px-6 py-2 bg-green-600 text-white rounded-lg"
-        >
-          {step === steps.length - 1 ? 'Submit' : 'Next'}
-        </button>
-      </div>
-    </div>
-  )
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 pl-1">First Name</label>
+                    <input {...register('firstName')} placeholder="Arjun" className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 focus:border-emerald-500 outline-none font-bold transition-all" />
+                    {errors.firstName && <p className="text-xs text-red-500 font-bold">{errors.firstName.message as string}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 pl-1">Last Name</label>
+                    <input {...register('lastName')} placeholder="Singh" className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 focus:border-emerald-500 outline-none font-bold transition-all" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 pl-1">Aadhaar Number (UIDAI)</label>
+                  <input {...register('nationalId')} placeholder="1234 5678 9012" className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 focus:border-emerald-500 outline-none font-bold tracking-[0.2em] transition-all" />
+                </div>
+              </motion.div>
+            )}
+
+            {step === 1 && (
+              <motion.div className="space-y-8">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Farm Assets</h2>
+                  <p className="text-slate-500 font-medium italic">Step 02 / Asset Registry</p>
+                </div>
+                <div className="space-y-4">
+                  <input placeholder="Land Area (Acres)" type="number" className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 outline-none font-bold" />
+                  <input placeholder="Soil Type (Khadar/Bangur)" className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 outline-none font-bold" />
+                </div>
+              </motion.div>
+            )}
+
+            {step === 2 && (
+              <motion.div className="space-y-8">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Digital Documents</h2>
+                  <p className="text-slate-500 font-medium italic">Step 03 / Proof of Ownership</p>
+                </div>
+                <div className="border-4 border-dashed border-slate-100 p-16 text-center rounded-[2rem] hover:border-emerald-200 transition-colors cursor-pointer group">
+                  <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <FileCheck className="text-slate-300 group-hover:text-emerald-500 transition-colors" size={32} />
+                  </div>
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Click to upload Khasra/Khatauni</p>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 3 && (
+              <motion.div className="space-y-8">
+                <div className="space-y-2 text-center pb-4">
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Final Registry Scan</h2>
+                  <p className="text-slate-500 font-medium italic italic">Ready for Blockchain Submission</p>
+                </div>
+                <div className="p-6 rounded-3xl bg-slate-50 border border-slate-200 font-mono text-xs">
+                  <pre className="whitespace-pre-wrap text-slate-600 leading-relaxed uppercase">
+                    {JSON.stringify(formData, null, 2)}
+                  </pre>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="flex justify-between pt-8 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={prevStep}
+              disabled={step === 0}
+              className="flex items-center gap-2 px-8 py-3 rounded-2xl border-2 border-slate-200 text-slate-400 font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 disabled:opacity-30 transition-all"
+            >
+              <ChevronLeft size={16} /> Previous
+            </button>
+            <button
+              type="submit"
+              className="px-10 py-4 bg-slate-900 text-white rounded-[1.5rem] font-black uppercase tracking-widest text-xs flex items-center gap-3 hover:bg-slate-800 shadow-xl shadow-slate-900/10 active:scale-95 transition-all"
+            >
+              {step === steps.length - 1 ? 'Execute Protocol' : 'Proceed'} <ArrowRight size={18} />
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
+  );
 }
