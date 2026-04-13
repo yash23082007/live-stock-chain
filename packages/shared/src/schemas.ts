@@ -4,8 +4,27 @@ export const userRoleValues = [
   "FARMER",
   "AGENT",
   "SUPPLIER",
+  "VETERINARIAN",
+  "BUYER",
   "ADMIN",
   "SUPER_ADMIN",
+] as const;
+
+export const livestockSpeciesValues = [
+  "CATTLE",
+  "SHEEP",
+  "GOAT",
+  "PIG",
+  "POULTRY",
+] as const;
+
+export const healthEventTypeValues = [
+  "VACCINATION",
+  "TREATMENT",
+  "CHECKUP",
+  "ILLNESS",
+  "INJURY",
+  "SURGERY",
 ] as const;
 
 export const applicationStatusValues = [
@@ -107,6 +126,27 @@ export const harvestReportSchema = z.object({
   photoUrls: z.array(z.string().url()).max(10).default([]),
 });
 
+export const animalRegistrationSchema = z.object({
+  tagNumber: z.string().trim().min(4).max(32),
+  species: z.enum(livestockSpeciesValues),
+  breed: z.string().trim().min(2).max(80).optional(),
+  gender: z.enum(["male", "female", "unknown"]),
+  dateOfBirth: z.string().datetime().optional(),
+  birthWeightKg: z.number().positive().max(2000).optional(),
+  farmId: z.string().min(1),
+});
+
+export const healthEventSchema = z.object({
+  animalId: z.string().min(1),
+  eventType: z.enum(healthEventTypeValues),
+  eventDate: z.string().datetime(),
+  description: z.string().trim().min(5).max(1000),
+  drugName: z.string().trim().max(120).optional(),
+  dosage: z.string().trim().max(120).optional(),
+  withdrawalDays: z.number().int().min(0).max(365).optional(),
+  severity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).default("LOW"),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
@@ -117,4 +157,6 @@ export type CreateCreditApplicationInput = z.infer<
 export type RedeemTokenInput = z.infer<typeof redeemTokenSchema>;
 export type RepaymentInput = z.infer<typeof repaymentSchema>;
 export type HarvestReportInput = z.infer<typeof harvestReportSchema>;
+export type AnimalRegistrationInput = z.infer<typeof animalRegistrationSchema>;
+export type HealthEventInput = z.infer<typeof healthEventSchema>;
 
