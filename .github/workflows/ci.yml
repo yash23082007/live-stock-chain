@@ -40,9 +40,32 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
-      - run: npm run db:generate
-      - run: npm run db:migrate
-      - run: npm run build
-      - run: npm run test
+      - name: Install dependencies
+        run: npm ci
 
+      - name: Generate Prisma Client
+        run: npm run db:generate
+
+      - name: Run Linting (Workspace Boundaries)
+        run: npm run lint
+
+      - name: Typecheck 
+        run: npm run typecheck
+
+      - name: Build Platform
+        run: npm run build
+
+      - name: Run Unit Tests
+        run: npm run test
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Slither (Contract Security Audit)
+        uses: crytic/slither-action@v0.4.0
+        with:
+          target: './apps/livestock'
+          slither-args: '--fail-high'
+        continue-on-error: true # Allow CI to pass while we refine initial findings
