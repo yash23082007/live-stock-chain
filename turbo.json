@@ -4,6 +4,9 @@
     ".env",
     ".env.example"
   ],
+  "remoteCache": {
+    "enabled": true
+  },
   "tasks": {
     "build": {
       "dependsOn": [
