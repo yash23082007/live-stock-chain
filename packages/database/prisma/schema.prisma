@@ -1,0 +1,425 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  FARMER
+  AGENT
+  SUPPLIER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum KYCStatus {
+  PENDING
+  SUBMITTED
+  VERIFIED
+  REJECTED
+}
+
+enum TokenStatus {
+  ISSUED
+  PARTIALLY_REDEEMED
+  FULLY_REDEEMED
+  EXPIRED
+  DEFAULTED
+  CANCELLED
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  DISBURSED
+}
+
+enum RepaymentStatus {
+  PENDING
+  PARTIAL
+  COMPLETED
+  OVERDUE
+  WRITTEN_OFF
+}
+
+enum InputCategory {
+  SEEDS
+  FERTILIZER
+  PESTICIDE
+  EQUIPMENT
+}
+
+enum TransactionType {
+  TOKEN_ISSUANCE
+  TOKEN_REDEMPTION
+  REPAYMENT
+  PENALTY
+  REVERSAL
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  FULFILLED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  MOBILE_MONEY
+  BANK
+  CASH
+  PRODUCE_DEDUCTION
+}
+
+enum DocumentType {
+  NATIONAL_ID
+  LAND_TITLE
+  PHOTO
+  FARM_MAP
+  KYC_FORM
+}
+
+model User {
+  id           String   @id @default(cuid())
+  phone        String   @unique
+  email        String?  @unique
+  passwordHash String
+  role         UserRole @default(FARMER)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  farmer    Farmer?
+  agent     Agent?
+  supplier  Supplier?
+  sessions  Session[]
+  auditLogs AuditLog[]
+
+  @@index([phone])
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  refreshToken String   @unique
+  deviceInfo   Json?
+  ipAddress    String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Farmer {
+  id             String     @id @default(cuid())
+  userId         String     @unique
+  nationalId     String?    @unique
+  firstName      String
+  lastName       String
+  dateOfBirth    DateTime?
+  gender         String?
+  photo          String?
+  kycStatus      KYCStatus  @default(PENDING)
+  kycVerifiedAt  DateTime?
+  village        String?
+  ward           String?
+  district       String
+  region         String
+  gpsCoordinates Json?
+  farmSizeAcres  Decimal?   @db.Decimal(10, 2)
+  primaryCrop    String?
+  cropsSown      String[]   @default([])
+  irrigationType String?
+  creditScore    Int        @default(0)
+  creditLimit    Decimal    @default(0) @db.Decimal(14, 2)
+  totalBorrowed  Decimal    @default(0) @db.Decimal(14, 2)
+  totalRepaid    Decimal    @default(0) @db.Decimal(14, 2)
+  defaultCount   Int        @default(0)
+  agentId        String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agent          Agent?              @relation(fields: [agentId], references: [id])
+  documents      Document[]
+  applications   CreditApplication[]
+  creditTokens   CreditToken[]
+  harvestReports HarvestReport[]
+
+  @@index([district, region])
+  @@index([kycStatus])
+  @@map("farmers")
+}
+
+model Agent {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  agentCode String   @unique
+  territory String[] @default([])
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  farmers Farmer[]
+
+  @@map("agents")
+}
+
+model Supplier {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  companyName String
+  licenseNo   String   @unique
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products    Product[]
+  inputOrders InputOrder[]
+
+  @@map("suppliers")
+}
+
+model Product {
+  id           String        @id @default(cuid())
+  supplierId   String
+  name         String
+  sku          String        @unique
+  category     InputCategory
+  unit         String
+  pricePerUnit Decimal       @db.Decimal(14, 2)
+  stockQty     Int           @default(0)
+  isActive     Boolean       @default(true)
+  imageUrl     String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  supplier   Supplier    @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@index([category])
+  @@map("products")
+}
+
+model CreditApplication {
+  id                  String            @id @default(cuid())
+  farmerId            String
+  seasonId            String
+  requestedAmount     Decimal           @db.Decimal(14, 2)
+  approvedAmount      Decimal?          @db.Decimal(14, 2)
+  purpose             String
+  cropType            String
+  expectedHarvestDate DateTime
+  status              ApplicationStatus @default(DRAFT)
+  reviewedBy          String?
+  reviewNote          String?
+  reviewedAt          DateTime?
+  submittedAt         DateTime?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  farmer      Farmer       @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  season      Season       @relation(fields: [seasonId], references: [id])
+  creditToken CreditToken?
+
+  @@index([farmerId, status])
+  @@map("credit_applications")
+}
+
+model CreditToken {
+  id                String      @id @default(cuid())
+  tokenCode         String      @unique
+  farmerId          String
+  applicationId     String      @unique
+  seasonId          String
+  issuedAmount      Decimal     @db.Decimal(14, 2)
+  redeemedAmount    Decimal     @default(0) @db.Decimal(14, 2)
+  remainingAmount   Decimal     @db.Decimal(14, 2)
+  interestRate      Decimal     @db.Decimal(5, 2)
+  issuedAt          DateTime    @default(now())
+  expiresAt         DateTime
+  status            TokenStatus @default(ISSUED)
+  qrCode            String?
+  blockchainTxHash  String?
+  idempotencyKey    String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  farmer            Farmer             @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  application       CreditApplication  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  season            Season             @relation(fields: [seasonId], references: [id])
+  inputOrders       InputOrder[]
+  repaymentSchedule RepaymentSchedule?
+  transactions      TokenTransaction[]
+
+  @@index([farmerId, status])
+  @@index([tokenCode])
+  @@map("credit_tokens")
+}
+
+model InputOrder {
+  id          String      @id @default(cuid())
+  tokenId      String
+  supplierId   String
+  orderCode    String      @unique
+  totalAmount  Decimal     @db.Decimal(14, 2)
+  status       OrderStatus @default(PENDING)
+  fulfilledAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  token     CreditToken @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  supplier  Supplier    @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  items     OrderItem[]
+
+  @@index([tokenId])
+  @@index([supplierId])
+  @@map("input_orders")
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  unitPrice Decimal  @db.Decimal(14, 2)
+  subtotal  Decimal  @db.Decimal(14, 2)
+
+  order   InputOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product    @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model HarvestReport {
+  id           String   @id @default(cuid())
+  farmerId      String
+  seasonId      String
+  cropType      String
+  yieldKg       Decimal  @db.Decimal(14, 2)
+  pricePerKg    Decimal  @db.Decimal(14, 2)
+  grossRevenue  Decimal  @db.Decimal(14, 2)
+  reportedAt    DateTime @default(now())
+  verifiedBy    String?
+  verifiedAt    DateTime?
+  photoUrls     String[] @default([])
+  gpsLocation   Json?
+
+  farmer Farmer @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  season Season @relation(fields: [seasonId], references: [id])
+
+  @@index([farmerId, seasonId])
+  @@map("harvest_reports")
+}
+
+model RepaymentSchedule {
+  id          String          @id @default(cuid())
+  tokenId      String          @unique
+  totalDue     Decimal         @db.Decimal(14, 2)
+  totalPaid    Decimal         @default(0) @db.Decimal(14, 2)
+  dueDate      DateTime
+  status       RepaymentStatus @default(PENDING)
+  overdueAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  token    CreditToken @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@map("repayment_schedules")
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  scheduleId   String
+  amount       Decimal       @db.Decimal(14, 2)
+  method       PaymentMethod
+  reference    String?
+  paidAt       DateTime      @default(now())
+  recordedBy   String?
+
+  schedule RepaymentSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@index([scheduleId])
+  @@map("payments")
+}
+
+model TokenTransaction {
+  id            String          @id @default(cuid())
+  tokenId        String
+  type           TransactionType
+  amount         Decimal         @db.Decimal(14, 2)
+  balanceBefore  Decimal         @db.Decimal(14, 2)
+  balanceAfter   Decimal         @db.Decimal(14, 2)
+  reference      String?
+  metadata       Json?
+  createdAt      DateTime        @default(now())
+  createdBy      String?
+
+  token CreditToken @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+
+  @@index([tokenId])
+  @@map("token_transactions")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId      String?
+  action      String
+  resource    String
+  resourceId  String?
+  oldValue    Json?
+  newValue    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([resource, resourceId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Season {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  startDate  DateTime
+  endDate    DateTime
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  applications CreditApplication[]
+  tokens       CreditToken[]
+  harvests     HarvestReport[]
+
+  @@map("seasons")
+}
+
+model Document {
+  id          String       @id @default(cuid())
+  farmerId      String
+  type          DocumentType
+  url           String
+  verified      Boolean     @default(false)
+  verifiedAt    DateTime?
+  uploadedAt    DateTime    @default(now())
+
+  farmer Farmer @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+
+  @@index([farmerId, type])
+  @@map("documents")
+}
