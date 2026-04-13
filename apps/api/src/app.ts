@@ -47,7 +47,41 @@ export async function buildApp() {
   await app.register(prismaPlugin)
 
   // Health check
-  app.get('/health', async () => ({ status: 'ok', timestamp: new Date() }))
+  app.get('/health', async (request, reply) => {
+    const health = {
+      status: 'ok',
+      timestamp: new Date(),
+      services: {
+        database: 'unknown',
+        redis: 'unknown',
+        blockchain: 'unknown'
+      }
+    };
+
+    try {
+      // Check Prisma
+      await app.prisma.$queryRaw`SELECT 1`;
+      health.services.database = 'healthy';
+    } catch (e) {
+      health.status = 'degraded';
+      health.services.database = 'unhealthy';
+    }
+
+    // Check Blockchain RPC
+    try {
+      const provider = new ethers.JsonRpcProvider(process.env.POLYGON_RPC_URL || 'https://rpc-amoy.polygon.technology/');
+      await provider.getBlockNumber();
+      health.services.blockchain = 'healthy';
+    } catch (e) {
+      health.status = 'degraded';
+      health.services.blockchain = 'unhealthy';
+    }
+
+    if (health.status !== 'ok') {
+      return reply.status(503).send(health);
+    }
+    return health;
+  })
 
   return app
 }
