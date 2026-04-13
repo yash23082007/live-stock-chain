@@ -1,0 +1,11 @@
+import createMiddleware from 'next-intl/middleware';
+ 
+export default createMiddleware({
+  locales: ['en', 'hi', 'bn', 'te', 'mr', 'ta', 'pa', 'gu', 'kn', 'ml', 'or'],
+  defaultLocale: 'en',
+  localeDetection: true
+});
+ 
+export const config = {
+  matcher: ['/', '/(hi|en|bn|te|mr|ta|pa|gu|kn|ml|or)/:path*']
+};
