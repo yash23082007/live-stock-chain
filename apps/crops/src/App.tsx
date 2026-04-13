@@ -4,15 +4,20 @@ import { OnboardingPage } from './pages/Onboarding'
 import { MarketplacePage } from './pages/Marketplace'
 import { HarvestReportPage } from './pages/HarvestReport'
 import { LandingPage } from './pages/Landing'
+import { AuthPage } from './pages/Auth'
 import { PremiumLayout } from './components/PremiumLayout'
 import './i18n/config'
 
 export default function App() {
+  // Mock auth state for the "Detailed Functional Features" requirement
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+
   return (
     <BrowserRouter>
       <PremiumLayout>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/auth" element={<AuthPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/harvest-report" element={<HarvestReportPage />} />
