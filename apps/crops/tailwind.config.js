@@ -7,6 +7,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        'slate-rich': '#0f172a',
         emerald: {
           50: '#ecfdf5',
           100: '#d1fae5',
@@ -22,7 +23,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Outfit', 'Inter', 'system-ui', 'sans-serif'],
+        hindi: ['Noto Sans Devanagari', 'sans-serif'],
       },
       animation: {
         'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
