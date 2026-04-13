@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Farm {
+  id               String            @id @default(uuid()) @db.Uuid
+  name             String
+  ownerId          String            @db.Uuid
+  location         String?
+  latitude         Float?
+  longitude        Float?
+  onChainFarmId    String?           @unique
+  createdAt        DateTime          @default(now()) @db.Timestamptz()
+  
+  owner            User              @relation("FarmOwner", fields: [ownerId], references: [id])
+  animals          Animal[]
+  alerts           Alert[]
+  users            User[]            @relation("FarmWorkers")
+}
+
+model Animal {
+  id               String            @id @default(uuid()) @db.Uuid
+  farmId           String            @db.Uuid
+  tagNumber        String            @unique
+  nftTokenId       String?           @unique
+  name             String?
+  species          String
+  breed            String?
+  gender           String?           // male, female, unknown
+  dateOfBirth      DateTime?         @db.Date
+  birthWeightKg    Float?
+  colorMarkings    String?
+  photoUrl         String?
+  ipfsMetadataCid  String?
+  currentOwnerId   String            @db.Uuid
+  status           String            @default("active") // active, sold, deceased, transferred
+  sireId           String?           @db.Uuid
+  damId            String?           @db.Uuid
+  healthScore      Int               @default(100)
+  lastHealthCheck  DateTime?         @db.Date
+  createdAt        DateTime          @default(now()) @db.Timestamptz()
+  updatedAt        DateTime          @default(now()) @updatedAt @db.Timestamptz()
+
+  farm             Farm              @relation(fields: [farmId], references: [id])
+  currentOwner     User              @relation("CurrentAnimalOwner", fields: [currentOwnerId], references: [id])
+  
+  sire             Animal?           @relation("SireRelation", fields: [sireId], references: [id])
+  dam              Animal?           @relation("DamRelation", fields: [damId], references: [id])
+  siredAnimals     Animal[]          @relation("SireRelation")
+  damedAnimals     Animal[]          @relation("DamRelation")
+
+  healthEvents     HealthEvent[]
+  weightRecords    WeightRecord[]
+  alerts           Alert[]
+  ownershipHistory OwnershipHistory[]
+  
+  breedingSire     BreedingEvent[]   @relation("BreedingSire")
+  breedingDam      BreedingEvent[]   @relation("BreedingDam")
+}
+
+model HealthEvent {
+  id                 String            @id @default(uuid()) @db.Uuid
+  animalId           String            @db.Uuid
+  eventType          String            // vaccination, treatment, checkup, illness, injury
+  eventDate          DateTime          @db.Date
+  description        String?
+  veterinarianId     String?           @db.Uuid
+  drugName           String?
+  dosage             String?
+  withdrawalDays     Int?
+  withdrawalEndDate  DateTime?         @db.Date
+  batchNumber        String?
+  dataHash           String?
+  onChainTxHash      String?
+  onChainAnchored    Boolean           @default(false)
+  severity           String?           // low, medium, high, critical
+  notes              String?
+  createdAt          DateTime          @default(now()) @db.Timestamptz()
+
+  animal             Animal            @relation(fields: [animalId], references: [id])
+  veterinarian       User?             @relation("VetHealthEvents", fields: [veterinarianId], references: [id])
+}
+
+model OwnershipHistory {
+  id                 String            @id @default(uuid()) @db.Uuid
+  animalId           String            @db.Uuid
+  fromOwnerId        String            @db.Uuid
+  toOwnerId          String            @db.Uuid
+  transferDate       DateTime          @db.Timestamptz()
+  transferType       String?           // sale, gift, inheritance, auction
+  priceAmount        Float?
+  priceCurrency      String            @default("INR")
+  onChainTxHash      String?
+  certificateUrl     String?
+  notes              String?
+
+  animal             Animal            @relation(fields: [animalId], references: [id])
+  fromOwner          User              @relation("OwnershipFrom", fields: [fromOwnerId], references: [id])
+  toOwner            User              @relation("OwnershipTo", fields: [toOwnerId], references: [id])
+}
+
+model WeightRecord {
+  id                 String            @id @default(uuid()) @db.Uuid
+  animalId           String            @db.Uuid
+  weightKg           Float
+  recordedAt         DateTime          @db.Date
+  recordedBy         String?           @db.Uuid
+  notes              String?
+
+  animal             Animal            @relation(fields: [animalId], references: [id])
+  recorder           User?             @relation("WeightRecorders", fields: [recordedBy], references: [id])
+}
+
+model BreedingEvent {
+  id                 String            @id @default(uuid()) @db.Uuid
+  damId              String            @db.Uuid
+  sireId             String            @db.Uuid
+  breedingDate       DateTime?         @db.Date
+  expectedBirthDate  DateTime?         @db.Date
+  actualBirthDate    DateTime?         @db.Date
+  offspringCount     Int?
+  outcome            String?           // successful, failed, pending
+  notes              String?
+
+  dam                Animal            @relation("BreedingDam", fields: [damId], references: [id])
+  sire               Animal            @relation("BreedingSire", fields: [sireId], references: [id])
+}
+
+model User {
+  id                 String            @id @default(uuid()) @db.Uuid
+  fullName           String?
+  role               String?           // farmer, veterinarian, buyer, regulator, admin
+  farmId             String?           @db.Uuid
+  walletAddress      String?           @unique
+  phone              String?
+  verified           Boolean           @default(false)
+  createdAt          DateTime          @default(now()) @db.Timestamptz()
+  
+  email              String            @unique
+  password           String?
+
+  ownedFarms         Farm[]            @relation("FarmOwner")
+  workingAtFarm      Farm?             @relation("FarmWorkers", fields: [farmId], references: [id])
+  ownedAnimals       Animal[]          @relation("CurrentAnimalOwner")
+  
+  vetHealthEvents    HealthEvent[]     @relation("VetHealthEvents")
+  ownershipsFrom     OwnershipHistory[] @relation("OwnershipFrom")
+  ownershipsTo       OwnershipHistory[] @relation("OwnershipTo")
+  weightRecords      WeightRecord[]     @relation("WeightRecorders")
+}
+
+model Alert {
+  id                 String            @id @default(uuid()) @db.Uuid
+  farmId             String?           @db.Uuid
+  animalId           String?           @db.Uuid
+  alertType          String?           // vaccination_due, outbreak_risk, withdrawal_expiry
+  message            String?
+  severity           String?
+  isRead             Boolean           @default(false)
+  createdAt          DateTime          @default(now()) @db.Timestamptz()
+
+  farm               Farm?             @relation(fields: [farmId], references: [id])
+  animal             Animal?           @relation(fields: [animalId], references: [id])
+}
