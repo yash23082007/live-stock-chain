@@ -1,20 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .animate-fade-in-up {
-    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+:root {
+  --canvas: #f8faf7;
+  --emerald-indian: #059669;
+  --trust-blue: #2563eb;
+  --saffron-pulse: #f59e0b;
+  --slate-rich: #0f172a;
+  --slate-subtle: #64748b;
+  --border-premium: rgba(15, 23, 42, 0.08);
+}
+
+@layer base {
+  body {
+    @apply antialiased text-slate-rich bg-[#f8faf7] selection:bg-emerald-100 selection:text-emerald-900;
+    font-family: 'Outfit', 'Noto Sans Devanagari', sans-serif;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl shadow-slate-200/50;
+  }
+  
+  .premium-shadow {
+    box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08);
   }
 
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  .btn-primary {
+    @apply px-6 py-3 rounded-2xl bg-slate-rich text-white font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-slate-900/10;
+  }
+}
+
+@layer utilities {
+  .animate-quantum-fade {
+    animation: quantumFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes quantumFade {
+    from { opacity: 0; transform: translateY(30px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
 }
